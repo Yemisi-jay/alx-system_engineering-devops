@@ -1,4 +1,18 @@
 #!/usr/bin/env bash
-# Gracefully reloads Gunicorn
 
-systemctl status gunicorn | grep -oE 'Main PID: [0-9]+' | cut -d ' ' -f3 | xargs kill -HUP
+# Gracefully reloads Gunicorn
+GUNICORN_PID=$(systemctl status gunicorn | grep -oE 'Main PID: [0-9]+' | cut -d ' ' -f3)
+
+if [ -z "$GUNICORN_PID" ]; then
+  echo "Gunicorn master process not found."
+  exit 1
+fi
+
+kill -HUP "$GUNICORN_PID"
+
+if [ $? -eq 0 ]; then
+  echo "Gunicorn gracefully reloaded."
+else
+  echo "Failed to reload Gunicorn."
+  exit 1
+fi
